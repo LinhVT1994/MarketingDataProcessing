@@ -1,0 +1,196 @@
+﻿<Window x:Class="MarketingDataProcessing.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MarketingDataProcessing"
+         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        mc:Ignorable="d"  xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+        Title="{Binding Title}" Height="500" Width="350">
+    <Window.Resources>
+        <Storyboard x:Key="DisplaySearchedResults">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="DisplaySearchedResultsGrid">
+                <DiscreteObjectKeyFrame    KeyTime="0:0:0.3" Value="{x:Static Visibility.Visible}"></DiscreteObjectKeyFrame>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="DontDisplaySearchedResults">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="DisplaySearchedResultsGrid">
+                <DiscreteObjectKeyFrame    KeyTime="0:0:0.3" Value="{x:Static Visibility.Collapsed}"></DiscreteObjectKeyFrame>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="DisplayNotFoundMessage">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="NotFoundCard">
+                <DiscreteObjectKeyFrame    KeyTime="0:0:0.3" Value="{x:Static Visibility.Visible}"></DiscreteObjectKeyFrame>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="DontDisplayNotFoundMessage">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Storyboard.TargetName="NotFoundCard">
+                <DiscreteObjectKeyFrame    KeyTime="0:0:0.3" Value="{x:Static Visibility.Collapsed}"></DiscreteObjectKeyFrame>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+    </Window.Resources>
+    <i:Interaction.Triggers>
+        <ei:DataTrigger Binding="{Binding IsDisplaySuggestion}" Value="false">
+            <ei:ControlStoryboardAction Storyboard="{StaticResource DontDisplaySearchedResults}" ControlStoryboardOption="Play">
+            </ei:ControlStoryboardAction>
+        </ei:DataTrigger>
+        <ei:DataTrigger Binding="{Binding IsDisplaySuggestion}" Value="true">
+            <ei:ControlStoryboardAction Storyboard="{StaticResource DisplaySearchedResults}" ControlStoryboardOption="Play">
+            </ei:ControlStoryboardAction>
+        </ei:DataTrigger>
+        <ei:DataTrigger Binding="{Binding IsDisplayNotFoundMessage}" Value="false">
+            <ei:ControlStoryboardAction Storyboard="{StaticResource DontDisplayNotFoundMessage}" ControlStoryboardOption="Play">
+            </ei:ControlStoryboardAction>
+        </ei:DataTrigger>
+        <ei:DataTrigger Binding="{Binding IsDisplayNotFoundMessage}" Value="true">
+            <ei:ControlStoryboardAction Storyboard="{StaticResource DisplayNotFoundMessage}" ControlStoryboardOption="Play">
+            </ei:ControlStoryboardAction>
+        </ei:DataTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <Grid x:Name="UpdateDataToSqlGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="70"></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <Button Name="LoadFromAExtendFile" Grid.Row="0" Height="50" Margin="10,0,10,0" Content="Load from an extend file..." Click="LoadFromAExtendFile_Click">
+            </Button>
+            <ListBox Name="listInformation"  Grid.Row="1" Margin="10,0,10,10"  ItemsSource="{Binding ElementName=UI, Path=ListMessages}"></ListBox>
+        </Grid>
+        <Grid x:Name="blurGrid"
+              Visibility="Collapsed"
+              Background="Black"
+              Panel.ZIndex="01"
+              Opacity="0.4">
+        </Grid>
+        <ProgressBar 
+            Visibility="Collapsed"
+            SnapsToDevicePixels="True"
+            Panel.ZIndex="2" 
+            Height="50"
+            Width="50"
+            IsIndeterminate ="True"
+            Style="{StaticResource MaterialDesignCircularProgressBar}" 
+            x:Name="progressBar">
+        </ProgressBar>
+        <StackPanel x:Name="waitMessage"
+                    Visibility="Collapsed"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom">
+            <TextBlock FontFamily="Consolas"
+                       Margin="0,5,0,0"
+                       Foreground="Red">
+                Data loading...
+            </TextBlock>
+            <TextBlock FontFamily="Consolas"
+                       Margin="0,10,0,10"
+                       Foreground="Red">
+                Please wait for a few minutes ...
+            </TextBlock>
+        </StackPanel>
+      
+        <Grid x:Name="SearchingResultGrid" Visibility="Visible" Panel.ZIndex="2" Background="White">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <materialDesign:PackIcon 
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right"
+                                    Margin="2,18,2,0"
+                                    Grid.Column="0" 
+                                    Kind="Search" 
+                                    Foreground="{Binding ElementName=txtName,Path=BorderBrush}" 
+                                    Width="20" 
+                                    Height="20">
+            </materialDesign:PackIcon>
+            <TextBox Grid.Column="1" 
+                      x:Name="tbSearch" 
+                                         Height="50"
+                                         FontSize="18"
+                                         Margin="2,0,0,0"
+                                         materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                                         materialDesign:HintAssist.Hint="会社名" 
+                                         materialDesign:HintAssist.IsFloating="True">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="TextChanged">
+                        <i:InvokeCommandAction Command="{Binding OnTextChangingEvent}" CommandParameter="{Binding ElementName=tbSearch,Path=Text,UpdateSourceTrigger=PropertyChanged}"></i:InvokeCommandAction>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <TextBox.InputBindings>
+                    <KeyBinding  Key="Enter" Command="{Binding OnTextChangingEvent}" CommandParameter="{Binding Path=Text, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}"/>
+                </TextBox.InputBindings>
+            </TextBox>
+            <Grid 
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Grid.Column="0">
+                <materialDesign:Card Panel.ZIndex="2" Visibility="Collapsed" Grid.Row="1" Margin="0,10,0,0" x:Name="NotFoundCard" Height="45">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                            <materialDesign:PackIcon Width="20" Height="20" Kind="EmoticonDead" Foreground="#FFC35454"></materialDesign:PackIcon>
+                            <TextBlock Margin="5,2,0,0" Text="{Binding NotFoundMessage}"></TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </materialDesign:Card>
+                <materialDesign:Card x:Name="DisplaySearchedResultsGrid"  
+                                     Margin="0,10,0,0" >
+                    <ListBox x:Name="ListSuggestion" KeyboardNavigation.DirectionalNavigation="Contained" ItemsSource="{Binding SuggestionsValues}" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" >
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDoubleClick">
+                                <i:InvokeCommandAction Command="{Binding OnMouseDownOnResultItem}" CommandParameter="{Binding Path=SelectedItem, ElementName=ListSuggestion}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="60" Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{Binding Id}" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+                                    <Grid Grid.Column="1">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="15"></RowDefinition>
+                                            <RowDefinition Height="*"></RowDefinition>
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Grid.Row="0" VerticalAlignment="Center">工事NO：　</TextBlock>
+                                            <TextBlock Grid.Row="0" Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding ConstructionNo}"></TextBlock>
+                                            <TextBlock Grid.Row="0" Margin="10,0,0,0" VerticalAlignment="Center">,工事名：　</TextBlock>
+                                            <TextBlock  Height="100" Margin="10,0,0,0" Grid.Row="0" VerticalAlignment="Center" Text="{Binding ConstructionName}"></TextBlock>
+
+                                        </StackPanel>
+
+                                        <TextBlock TextWrapping ="WrapWithOverflow" Grid.Row="1" TextAlignment="Justify"  Text="{Binding Fulltext}"></TextBlock>
+
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </materialDesign:Card>
+            </Grid>
+
+        </Grid>
+        <Grid Visibility="Visible" x:Name="RunUpdateDirectly"
+              Background="White"
+              Panel.ZIndex="4">
+            <Button Name="ButtonUpdateDirectly" Grid.Row="0" Height="50" Margin="10,0,10,0" Content="Upload to ..." >
+            </Button>
+            <TextBlock>
+      <Run Text="*" Foreground="#FFE10101"/><Run Text="Required Line" />
+      <Run Text="Red" Foreground="Red"/>
+      <Run Text="Blue" Foreground="Blue"/>
+      <Run Text="{Binding SomeString, StringFormat='Hell ya you can make \{0\} a different color!'}" Foreground="Orange"/>
+            </TextBlock>
+        </Grid>
+    </Grid>
+</Window>
